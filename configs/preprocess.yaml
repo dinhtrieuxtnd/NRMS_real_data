@@ -1,0 +1,35 @@
+preprocessing:
+  name: real_nrms_v1
+  seed: 42
+
+input:
+  train_behaviors: data/raw/behaviors/train_behaviors.csv
+  train_news: data/raw/news/train_news.csv
+  validation_behaviors: data/raw/behaviors/val_behaviors.csv
+  validation_news: data/raw/news/val_news.csv
+  test_behaviors: data/raw/behaviors/test_behaviors.csv
+  test_news: data/raw/news/test_news.csv
+  glove: data/raw/glove/glove.840B.300d.txt
+
+output:
+  directory: data/processed/real_nrms_v1
+  overwrite: false
+
+text:
+  lowercase: true
+  min_frequency: 1
+  max_title_length: 30
+
+sequence:
+  max_history_length: 50
+  deduplicate_history: true
+
+training:
+  negative_sampling_ratio: 4
+
+embedding:
+  dimension: 300
+  unmatched_init_std: 0.1
+
+logging:
+  level: INFO

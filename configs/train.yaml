@@ -1,0 +1,49 @@
+experiment:
+  name: real_nrms_v1
+  seed: 42
+
+data:
+  directory: data/processed/real_nrms_v1
+  max_history_length: 50
+  negative_sampling_ratio: 4
+
+loader:
+  train_batch_size: 256
+  validation_batch_size: 512
+  news_encoding_batch_size: 4096
+  num_workers: 4
+  pin_memory: true
+
+model:
+  embedding_dim: 300
+  num_attention_heads: 16
+  attention_head_dim: 16
+  additive_attention_dim: 200
+  dropout: 0.2
+  freeze_embedding: false
+
+training:
+  epochs: 15
+  learning_rate: 0.0002
+  weight_decay: 0.0
+  gradient_clip_norm: 5.0
+  patience: 3
+  min_delta: 0.0001
+  monitor: ndcg@10
+  amp: true
+  deterministic: false
+
+scheduler:
+  type: reduce_on_plateau
+  factor: 0.5
+  patience: 1
+  min_lr: 0.000001
+
+output:
+  root: outputs
+
+device: cuda
+
+logging:
+  level: INFO
+  progress_bar: true

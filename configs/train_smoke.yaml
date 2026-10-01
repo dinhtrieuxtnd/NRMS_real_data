@@ -1,0 +1,46 @@
+experiment:
+  name: real_nrms_smoke
+  seed: 42
+
+data:
+  directory: data/processed/real_nrms_v1
+  max_history_length: 4
+  negative_sampling_ratio: 4
+
+loader:
+  train_batch_size: 2
+  validation_batch_size: 2
+  news_encoding_batch_size: 512
+  num_workers: 0
+  pin_memory: true
+
+model:
+  embedding_dim: 300
+  num_attention_heads: 1
+  attention_head_dim: 8
+  additive_attention_dim: 8
+  dropout: 0.0
+  freeze_embedding: true
+
+training:
+  epochs: 1
+  learning_rate: 0.0001
+  weight_decay: 0.0
+  gradient_clip_norm: 5.0
+  patience: 1
+  min_delta: 0.0001
+  monitor: ndcg@10
+  amp: false
+  deterministic: false
+
+scheduler:
+  type: none
+
+output:
+  root: outputs
+
+device: auto
+
+logging:
+  level: INFO
+  progress_bar: false
