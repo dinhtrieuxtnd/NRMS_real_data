@@ -1,5 +1,5 @@
 preprocessing:
-  name: real_nrms_v1
+  name: real_nrms_fasttext_vi
   seed: 42
 
 input:
@@ -9,10 +9,10 @@ input:
   validation_news: data/raw/news/val_news.csv
   test_behaviors: data/raw/behaviors/test_behaviors.csv
   test_news: data/raw/news/test_news.csv
-  glove: data/raw/glove/glove.840B.300d.txt
+  word_vectors: data/raw/fasttext/cc.vi.300.vec
 
 output:
-  directory: data/processed/real_nrms_v1
+  directory: data/processed/real_nrms_fasttext_vi
   overwrite: false
 
 text:

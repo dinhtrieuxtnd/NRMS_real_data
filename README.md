@@ -5,8 +5,11 @@ Self-Attention (NRMS) trên dữ liệu log thật (title tiếng Việt). Code 
 toàn bộ pipeline của project NRMS (MINDsmall); chỉ phần đọc dữ liệu và chia
 split được thay đổi cho định dạng CSV mới.
 
-Mô hình dùng title của news và GloVe 840B 300 chiều (các từ không có trong
-GloVe được khởi tạo ngẫu nhiên và học trong quá trình train).
+Mô hình dùng title của news và word vector fastText tiếng Việt `cc.vi.300.vec`
+(300 chiều, https://fasttext.cc/docs/en/crawl-vectors.html). Token khớp chính
+xác được ưu tiên; nếu không có thì dùng vector của dạng viết hoa (ví dụ `Hà` cho
+`hà`). Các từ còn lại được khởi tạo ngẫu nhiên và học trong quá trình train.
+Loader vẫn đọc được file định dạng GloVe (không header) qua `input.word_vectors`.
 
 ## Cài đặt
 
@@ -28,8 +31,8 @@ data/raw/
     train_news.csv
     val_news.csv
     test_news.csv
-  glove/
-    glove.840B.300d.txt
+  fasttext/
+    cc.vi.300.vec
 ```
 
 Các file CSV **không có header**:
@@ -59,7 +62,7 @@ Khác biệt so với MIND khi preprocess:
 ```powershell
 python -m scripts.preprocess --config configs/preprocess.yaml
 python -m scripts.validate_processed `
-  --data-dir data/processed/real_nrms_v1
+  --data-dir data/processed/real_nrms_fasttext_vi
 ```
 
 Thêm `--overwrite` vào lệnh preprocess khi cần tạo lại processed dataset.
@@ -80,7 +83,7 @@ outputs/<experiment_name>/YYYY-MM-DD_HH-MM-SS/
 
 ```powershell
 python -m scripts.evaluate `
-  --run-dir outputs/real_nrms_v1/YYYY-MM-DD_HH-MM-SS
+  --run-dir outputs/real_nrms_fasttext_vi/YYYY-MM-DD_HH-MM-SS
 ```
 
 Kết quả gồm test metrics và prediction cho từng impression/news.
@@ -89,7 +92,7 @@ Kết quả gồm test metrics và prediction cho từng impression/news.
 
 ```powershell
 python -m scripts.recommend `
-  --run-dir outputs/real_nrms_v1/YYYY-MM-DD_HH-MM-SS `
+  --run-dir outputs/real_nrms_fasttext_vi/YYYY-MM-DD_HH-MM-SS `
   --history 188260907102710952 188260908163714249 `
   --top-k 10
 ```
@@ -123,7 +126,7 @@ Tăng `training.epochs` trong config tới tổng số epoch mong muốn, sau đ
 ```powershell
 python -m scripts.train `
   --config configs/train.yaml `
-  --resume outputs/real_nrms_v1/YYYY-MM-DD_HH-MM-SS/checkpoints/last.pt
+  --resume outputs/real_nrms_fasttext_vi/YYYY-MM-DD_HH-MM-SS/checkpoints/last.pt
 ```
 
 Resume tiếp tục trong run directory cũ và khôi phục model, optimizer, scheduler,

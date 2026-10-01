@@ -213,15 +213,19 @@ def run(
 
         embedding_config = config["embedding"]
         embedding_matrix, embedding_statistics = build_embedding_matrix(
-            input_paths["glove"],
+            input_paths["word_vectors"],
             word_dict,
             dimension=embedding_config["dimension"],
             seed=config["preprocessing"]["seed"],
             unmatched_init_std=embedding_config["unmatched_init_std"],
         )
         logger.info(
-            "Loaded GloVe: matched=%d oov=%d coverage=%.4f",
+            "Loaded word vectors (%s): matched=%d (exact=%d, case_fallback=%d) "
+            "oov=%d coverage=%.4f",
+            embedding_statistics["format"],
             embedding_statistics["matched_tokens"],
+            embedding_statistics["exact_matched_tokens"],
+            embedding_statistics["case_fallback_matched_tokens"],
             embedding_statistics["oov_tokens"],
             embedding_statistics["coverage"],
         )
@@ -329,10 +333,10 @@ def run(
         input_manifest = {
             name: file_descriptor(path)
             for name, path in input_paths.items()
-            if name != "glove"
+            if name != "word_vectors"
         }
-        input_manifest["glove"] = {
-            "path": str(input_paths["glove"].resolve()),
+        input_manifest["word_vectors"] = {
+            "path": str(input_paths["word_vectors"].resolve()),
             "size_bytes": embedding_statistics["source_size_bytes"],
             "sha256": embedding_statistics["source_sha256"],
         }

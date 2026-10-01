@@ -14,8 +14,10 @@ INPUT_KEYS = (
     "validation_news",
     "test_behaviors",
     "test_news",
-    "glove",
+    "word_vectors",
 )
+# Legacy key name accepted for backward compatibility with old configs.
+_LEGACY_INPUT_ALIASES = {"glove": "word_vectors"}
 
 
 def load_config(config_path: str | Path) -> dict[str, Any]:
@@ -24,6 +26,11 @@ def load_config(config_path: str | Path) -> dict[str, Any]:
         config = yaml.safe_load(file)
     if not isinstance(config, dict):
         raise ValueError(f"Config {path} must contain a YAML mapping")
+    inputs = config.get("input")
+    if isinstance(inputs, dict):
+        for legacy, current in _LEGACY_INPUT_ALIASES.items():
+            if legacy in inputs and current not in inputs:
+                inputs[current] = inputs.pop(legacy)
     validate_config(config)
     return config
 
@@ -79,7 +86,7 @@ def validate_config(config: dict[str, Any]) -> None:
     _positive_int(training, "negative_sampling_ratio", "training", errors)
     _positive_int(embedding, "dimension", "embedding", errors)
     if embedding.get("dimension") != 300:
-        errors.append("embedding.dimension must be 300 for NRMS GloVe embeddings")
+        errors.append("embedding.dimension must be 300 for NRMS word embeddings")
 
     init_std = embedding.get("unmatched_init_std")
     if not isinstance(init_std, (int, float)) or isinstance(init_std, bool) or init_std <= 0:
