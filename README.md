@@ -52,6 +52,9 @@ Khác biệt so với MIND khi preprocess:
 - Log thật lặp lại cùng một news: candidate trùng trong một impression được gộp
   (nhãn = 1 nếu có ít nhất một lần click). `sequence.deduplicate_history: true`
   bỏ news trùng trong history (giữ lần xuất hiện gần nhất).
+- `sequence.exclude_history_from_candidates: true` loại khỏi candidate những
+  news đã có trong history (xét toàn bộ history gốc, trước khi cắt). Số
+  candidate bị loại ghi ở `statistics.json` → `samples.candidate_filtering`.
 - Impression không có negative bị bỏ ở cả train/validation/test (không tính
   được AUC); số lượng bị bỏ được ghi trong log và `statistics.json`.
 

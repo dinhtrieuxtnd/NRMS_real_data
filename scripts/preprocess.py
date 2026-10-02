@@ -240,32 +240,44 @@ def run(
         known_news_ids = set(combined_news["news_id"])
         max_history_length = config["sequence"]["max_history_length"]
         deduplicate_history = config["sequence"].get("deduplicate_history", True)
-        train_samples, train_counters = build_train_samples(
+        exclude_history = config["sequence"].get("exclude_history_from_candidates", True)
+        train_samples, train_counters, train_candidate_stats = build_train_samples(
             train_behaviors,
             known_news_ids,
             max_history_length=max_history_length,
             deduplicate_history=deduplicate_history,
+            exclude_history_from_candidates=exclude_history,
         )
-        validation_samples, validation_counters = build_evaluation_samples(
-            validation_behaviors,
-            known_news_ids,
-            max_history_length=max_history_length,
-            split_name="validation",
-            deduplicate_history=deduplicate_history,
+        validation_samples, validation_counters, validation_candidate_stats = (
+            build_evaluation_samples(
+                validation_behaviors,
+                known_news_ids,
+                max_history_length=max_history_length,
+                split_name="validation",
+                deduplicate_history=deduplicate_history,
+                exclude_history_from_candidates=exclude_history,
+            )
         )
-        test_samples, test_counters = build_evaluation_samples(
+        test_samples, test_counters, test_candidate_stats = build_evaluation_samples(
             test_behaviors,
             known_news_ids,
             max_history_length=max_history_length,
             split_name="test",
             deduplicate_history=deduplicate_history,
+            exclude_history_from_candidates=exclude_history,
         )
+        candidate_statistics = {
+            "train": train_candidate_stats,
+            "validation": validation_candidate_stats,
+            "test": test_candidate_stats,
+        }
         for name, counters in (
             ("train", train_counters),
             ("validation", validation_counters),
             ("test", test_counters),
         ):
             _log_skip_counters(logger, name, counters)
+            logger.info("%s candidate filtering: %s", name, candidate_statistics[name])
         logger.info(
             "Built samples: train=%d validation=%d test=%d",
             len(train_samples),
@@ -310,6 +322,10 @@ def run(
                 "train": train_counters,
                 "validation": validation_counters,
                 "test": test_counters,
+            },
+            "candidate_filtering": {
+                "exclude_history_from_candidates": exclude_history,
+                **candidate_statistics,
             },
             "history_lengths": {
                 "train": _describe_lengths([len(value) for value in train_behaviors["history"]]),

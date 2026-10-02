@@ -83,6 +83,8 @@ def validate_config(config: dict[str, Any]) -> None:
     _positive_int(sequence, "max_history_length", "sequence", errors)
     if not isinstance(sequence.get("deduplicate_history", True), bool):
         errors.append("sequence.deduplicate_history must be a boolean")
+    if not isinstance(sequence.get("exclude_history_from_candidates", True), bool):
+        errors.append("sequence.exclude_history_from_candidates must be a boolean")
     _positive_int(training, "negative_sampling_ratio", "training", errors)
     _positive_int(embedding, "dimension", "embedding", errors)
     if embedding.get("dimension") != 300:

@@ -23,6 +23,7 @@ text:
 sequence:
   max_history_length: 50
   deduplicate_history: true
+  exclude_history_from_candidates: true
 
 training:
   negative_sampling_ratio: 4

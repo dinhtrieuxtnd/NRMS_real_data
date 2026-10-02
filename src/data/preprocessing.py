@@ -50,6 +50,26 @@ def _merge_candidates(candidates: list[tuple[str, int]]) -> list[tuple[str, int]
         labels[news_id] = max(labels.get(news_id, 0), label)
     return list(labels.items())
 
+def _prepare_candidates(
+    raw_candidates: list[tuple[str, int]],
+    raw_history: list[str],
+    *,
+    exclude_history: bool,
+    stats: Counter[str],
+) -> list[tuple[str, int]]:
+    """Merge duplicate candidates, then optionally drop candidates the user
+    already read (present anywhere in the full, untruncated history)."""
+    candidates = _merge_candidates(raw_candidates)
+    stats["duplicate_candidates_merged"] += len(raw_candidates) - len(candidates)
+    if exclude_history:
+        seen = set(raw_history)
+        kept = [(news_id, label) for news_id, label in candidates if news_id not in seen]
+        removed = [label for news_id, label in candidates if news_id in seen]
+        stats["history_candidates_removed"] += len(removed)
+        stats["history_candidates_removed_positive"] += sum(removed)
+        candidates = kept
+    return candidates
+
 
 def build_train_samples(
     behaviors: pd.DataFrame,
@@ -57,10 +77,12 @@ def build_train_samples(
     *,
     max_history_length: int,
     deduplicate_history: bool = True,
-) -> tuple[list[dict[str, Any]], dict[str, int]]:
+    exclude_history_from_candidates: bool = True,
+) -> tuple[list[dict[str, Any]], dict[str, int], dict[str, int]]:
     validate_news_references(behaviors, known_news_ids, split_name="train")
     samples: list[dict[str, Any]] = []
     counters: Counter[str] = Counter()
+    candidate_stats: Counter[str] = Counter()
     for row in behaviors.itertuples(index=False):
         history = _prepare_history(
             row.history,
@@ -70,7 +92,12 @@ def build_train_samples(
         if not history:
             counters["empty_history"] += 1
             continue
-        candidates = _merge_candidates(row.candidates)
+        candidates = _prepare_candidates(
+            row.candidates,
+            row.history,
+            exclude_history=exclude_history_from_candidates,
+            stats=candidate_stats,
+        )
         positives = [news_id for news_id, label in candidates if label == 1]
         negatives = [news_id for news_id, label in candidates if label == 0]
         if not positives:
@@ -91,7 +118,7 @@ def build_train_samples(
             samples.append({**common, "positive": positive})
     counters["input_impressions"] = len(behaviors)
     counters["output_samples"] = len(samples)
-    return samples, dict(counters)
+    return samples, dict(counters), dict(candidate_stats)
 
 
 def build_evaluation_samples(
@@ -101,10 +128,12 @@ def build_evaluation_samples(
     max_history_length: int,
     split_name: str,
     deduplicate_history: bool = True,
-) -> tuple[list[dict[str, Any]], dict[str, int]]:
+    exclude_history_from_candidates: bool = True,
+) -> tuple[list[dict[str, Any]], dict[str, int], dict[str, int]]:
     validate_news_references(behaviors, known_news_ids, split_name=split_name)
     samples: list[dict[str, Any]] = []
     counters: Counter[str] = Counter()
+    candidate_stats: Counter[str] = Counter()
     for row in behaviors.itertuples(index=False):
         history = _prepare_history(
             row.history,
@@ -114,7 +143,12 @@ def build_evaluation_samples(
         if not history:
             counters["empty_history"] += 1
             continue
-        candidates = _merge_candidates(row.candidates)
+        candidates = _prepare_candidates(
+            row.candidates,
+            row.history,
+            exclude_history=exclude_history_from_candidates,
+            stats=candidate_stats,
+        )
         labels = [label for _, label in candidates]
         # AUC/MRR/nDCG are undefined without both a click and a non-click.
         if 1 not in labels:
@@ -135,4 +169,4 @@ def build_evaluation_samples(
         )
     counters["input_impressions"] = len(behaviors)
     counters["output_samples"] = len(samples)
-    return samples, dict(counters)
+    return samples, dict(counters), dict(candidate_stats)
