@@ -1,18 +1,16 @@
 preprocessing:
-  name: real_nrms_fasttext_vi
+  name: nrms_rd_v1
   seed: 42
 
 input:
+  news: data/raw/news/news.csv
   train_behaviors: data/raw/behaviors/train_behaviors.csv
-  train_news: data/raw/news/train_news.csv
   validation_behaviors: data/raw/behaviors/val_behaviors.csv
-  validation_news: data/raw/news/val_news.csv
   test_behaviors: data/raw/behaviors/test_behaviors.csv
-  test_news: data/raw/news/test_news.csv
   word_vectors: data/raw/fasttext/cc.vi.300.vec
 
 output:
-  directory: data/processed/real_nrms_fasttext_vi
+  directory: data/processed/nrms_rd_v1
   overwrite: false
 
 text:

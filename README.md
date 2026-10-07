@@ -28,25 +28,25 @@ data/raw/
     val_behaviors.csv
     test_behaviors.csv
   news/
-    train_news.csv
-    val_news.csv
-    test_news.csv
+    news.csv
   fasttext/
     cc.vi.300.vec
 ```
 
-Các file CSV **không có header**:
+Định dạng CSV:
 
-- `*_behaviors.csv`: `user_id,time,history,impressions`
+- `*_behaviors.csv` (**không có header**): `impression_id,user_id,time,history,impressions`
   - `time`: `YYYY-MM-DD HH:MM:SS`
   - `history`: các news ID cách nhau bởi dấu cách, theo thứ tự thời gian
   - `impressions`: `NEWS_ID-1` (click) / `NEWS_ID-0` (không click), cách nhau bởi dấu cách
-- `*_news.csv`: `news_id,title`
+  - Định dạng cũ 4 cột (không có `impression_id`) vẫn được hỗ trợ.
+- `news/news.csv` (có header `newsId,title`): một file chung cho cả
+  train/validation/test; vocabulary được xây từ toàn bộ title trong file này.
 
 Khác biệt so với MIND khi preprocess:
 
-- Không có cột impression ID nên ID được sinh dạng `<split>-<số dòng>`
-  (ví dụ `train-12`, `test-305`).
+- Impression ID được ghi dạng `<split>-<impression_id>` (ví dụ `train-12`,
+  `test-305`); với file 4 cột thì dùng số dòng thay cho `impression_id`.
 - Validation và test lấy trực tiếp từ `val_*` và `test_*`, không chia dev theo
   thời gian như MIND.
 - Log thật lặp lại cùng một news: candidate trùng trong một impression được gộp
@@ -65,7 +65,7 @@ Khác biệt so với MIND khi preprocess:
 ```powershell
 python -m scripts.preprocess --config configs/preprocess.yaml
 python -m scripts.validate_processed `
-  --data-dir data/processed/real_nrms_fasttext_vi
+  --data-dir data/processed/nrms_rd_v1
 ```
 
 Thêm `--overwrite` vào lệnh preprocess khi cần tạo lại processed dataset.
@@ -86,7 +86,7 @@ outputs/<experiment_name>/YYYY-MM-DD_HH-MM-SS/
 
 ```powershell
 python -m scripts.evaluate `
-  --run-dir outputs/real_nrms_fasttext_vi/YYYY-MM-DD_HH-MM-SS
+  --run-dir outputs/nrms_rd_v1/YYYY-MM-DD_HH-MM-SS
 ```
 
 Kết quả gồm test metrics và prediction cho từng impression/news.
@@ -95,7 +95,7 @@ Kết quả gồm test metrics và prediction cho từng impression/news.
 
 ```powershell
 python -m scripts.recommend `
-  --run-dir outputs/real_nrms_fasttext_vi/YYYY-MM-DD_HH-MM-SS `
+  --run-dir outputs/nrms_rd_v1/YYYY-MM-DD_HH-MM-SS `
   --history 188260907102710952 188260908163714249 `
   --top-k 10
 ```
@@ -129,7 +129,7 @@ Tăng `training.epochs` trong config tới tổng số epoch mong muốn, sau đ
 ```powershell
 python -m scripts.train `
   --config configs/train.yaml `
-  --resume outputs/real_nrms_fasttext_vi/YYYY-MM-DD_HH-MM-SS/checkpoints/last.pt
+  --resume outputs/nrms_rd_v1/YYYY-MM-DD_HH-MM-SS/checkpoints/last.pt
 ```
 
 Resume tiếp tục trong run directory cũ và khôi phục model, optimizer, scheduler,

@@ -8,12 +8,10 @@ import yaml
 
 
 INPUT_KEYS = (
+    "news",
     "train_behaviors",
-    "train_news",
     "validation_behaviors",
-    "validation_news",
     "test_behaviors",
-    "test_news",
     "word_vectors",
 )
 # Legacy key name accepted for backward compatibility with old configs.

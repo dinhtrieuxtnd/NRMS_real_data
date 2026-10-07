@@ -177,26 +177,23 @@ def run(
         test_behaviors = read_behaviors(
             input_paths["test_behaviors"], split_name="test"
         )
-        train_news = read_news(input_paths["train_news"])
-        validation_news = read_news(input_paths["validation_news"])
-        test_news = read_news(input_paths["test_news"])
+        raw_news = read_news(input_paths["news"])
         logger.info(
-            "Loaded rows: "             "train_behaviors=%d "             "validation_behaviors=%d "             "test_behaviors=%d "             "train_news=%d "             "validation_news=%d "             "test_news=%d",
+            "Loaded rows: "             "train_behaviors=%d "             "validation_behaviors=%d "             "test_behaviors=%d "             "news=%d",
             len(train_behaviors),
             len(validation_behaviors),
             len(test_behaviors),
-            len(train_news),
-            len(validation_news),
-            len(test_news),
+            len(raw_news),
         )
 
+        # Deduplicates news IDs and rejects conflicting titles.
+        combined_news = merge_news(raw_news)
         text_config = config["text"]
         word_dict = build_word_dict(
-            train_news["title"],
+            combined_news["title"],
             lowercase=text_config["lowercase"],
             min_frequency=text_config["min_frequency"],
         )
-        combined_news = merge_news(train_news, validation_news, test_news)
         news_title_mapping = build_news_title_mapping(
             combined_news,
             word_dict,
@@ -312,10 +309,8 @@ def run(
                 "train_behaviors": len(train_behaviors),
                 "validation_behaviors": len(validation_behaviors),
                 "test_behaviors": len(test_behaviors),
-                "train_news": len(train_news),
-                "validation_news": len(validation_news),
-                "test_news": len(test_news),
-                "combined_news": len(combined_news),
+                "news": len(raw_news),
+                "unique_news": len(combined_news),
             },
             "split": split_metadata,
             "samples": {
